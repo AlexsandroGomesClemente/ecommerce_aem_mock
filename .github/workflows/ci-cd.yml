@@ -1,0 +1,55 @@
+# ADR-004 e ADR-006: Pipeline de CI/CD com Build AEM ClientLibs, Testes e Gate de Carga k6 (500 e 5.000 Usuários)
+name: E-Commerce Enterprise CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-test-and-load-gate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 1. Executar Testes Unitários e de Integração do Back-end Java (JUnit 5)
+        working-directory: ./backend
+        run: chmod +x mvnw && ./mvnw test -B
+
+      - name: 2. Instalar Dependências, Rodar Testes Unitários (Vitest) e Gerar AEM ClientLibs (ADR-004)
+        working-directory: ./ui.frontend
+        run: |
+          npm install --no-audit --no-fund
+          npm run test:unit
+          npm run build
+
+      - name: 3. Iniciar Back-end Java em Background para Gate de Carga (ADR-006)
+        working-directory: ./backend
+        run: |
+          ./mvnw spring-boot:run &
+          for i in {1..30}; do
+            if curl -fsS http://localhost:8080/actuator/health > /dev/null; then
+              echo "Back-end online!"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: 4. Executar Gate de Testes de Carga (500 e 5.000 Usuários Simultâneos | SLO p95 < 200ms - ADR-006)
+        run: node ./load-tests/run-load-test.mjs
+
