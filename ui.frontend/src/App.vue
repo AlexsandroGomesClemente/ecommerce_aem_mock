@@ -14,6 +14,30 @@ const paymentMethod = ref('PIX_INSTANTANEO');
 const showAuthModal = ref(false);
 const showCartDrawer = ref(false);
 
+const paymentOptions = [
+  {
+    id: 'PIX_INSTANTANEO',
+    title: 'PIX',
+    subtitle: 'Aprovação imediata',
+    icon: '⚡',
+    badge: 'Mais Rápido'
+  },
+  {
+    id: 'CARTAO_CREDITO_PRIME',
+    title: 'Cartão de Crédito',
+    subtitle: 'Até 12x sem juros',
+    icon: '💳',
+    badge: null
+  },
+  {
+    id: 'BOLETO_CORPORATIVO',
+    title: 'Boleto Bancário',
+    subtitle: 'Vencimento em 3 dias',
+    icon: '📄',
+    badge: null
+  }
+];
+
 const categories = ['TODOS', 'Notebooks', 'Smartphones', 'Audio', 'Monitores', 'Wearables', 'Perifericos'];
 
 onMounted(async () => {
@@ -47,6 +71,12 @@ async function handleCheckout() {
     return;
   }
   await store.checkout(paymentMethod.value);
+}
+
+function selectPaymentMethod(id: string) {
+  paymentMethod.value = id;
+  const opt = paymentOptions.find(p => p.id === id);
+  store.addToast('info', 'Forma de Pagamento', `Selecionado: ${opt?.title || id}`);
 }
 
 function formatBrl(value: number): string {
@@ -312,14 +342,40 @@ function scrollToCatalog() {
         </div>
 
         <div class="cart-summary">
-          <label>
-            Forma de Pagamento:
-            <select v-model="paymentMethod">
-              <option value="PIX_INSTANTANEO">PIX Instantâneo</option>
-              <option value="CARTAO_CREDITO_PRIME">Cartão de Crédito</option>
-              <option value="BOLETO_CORPORATIVO">Boleto Bancário</option>
-            </select>
-          </label>
+          <!-- Mini cards de formas de pagamento intuitivos -->
+          <div class="payment-methods-section">
+            <span class="payment-section-title">Forma de Pagamento</span>
+            <div class="payment-cards-grid" role="radiogroup" aria-label="Forma de Pagamento">
+              <div
+                v-for="opt in paymentOptions"
+                :key="opt.id"
+                class="payment-option-card"
+                :class="{ active: paymentMethod === opt.id }"
+                :data-testid="`payment-option-${opt.id}`"
+                tabindex="0"
+                role="radio"
+                :aria-checked="paymentMethod === opt.id"
+                @click="selectPaymentMethod(opt.id)"
+                @keydown.enter="selectPaymentMethod(opt.id)"
+                @keydown.space.prevent="selectPaymentMethod(opt.id)"
+              >
+                <div class="payment-card-left">
+                  <span class="payment-card-icon">{{ opt.icon }}</span>
+                  <div class="payment-card-text">
+                    <span class="payment-card-name">{{ opt.title }}</span>
+                    <span class="payment-card-sub">{{ opt.subtitle }}</span>
+                  </div>
+                </div>
+                <div class="payment-card-right">
+                  <span v-if="opt.badge" class="payment-badge">{{ opt.badge }}</span>
+                  <span class="payment-radio-indicator">
+                    <span v-if="paymentMethod === opt.id" class="radio-inner-dot"></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="cart-total-row">
             <span>Total do Pedido:</span>
             <strong data-testid="cart-total-value">{{ formatBrl(store.cartTotal) }}</strong>

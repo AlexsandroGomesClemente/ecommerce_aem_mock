@@ -1,2 +1,2 @@
 #base=js
-aem-vue-app.D_dXSqpF.js
+aem-vue-app._gGE7DB8.js

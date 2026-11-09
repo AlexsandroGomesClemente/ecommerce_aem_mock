@@ -1,2 +1,2 @@
 #base=css
-aem-vue-style.CQFUNNq2.css
+aem-vue-style.CDu8pwHk.css
