@@ -36,6 +36,3 @@ pnpm-debug.log*
 Thumbs.db
 .env
 .env.local
-
-**/.mvn/wrapper/apache-maven-*/
-**/.mvn/wrapper/*.zip

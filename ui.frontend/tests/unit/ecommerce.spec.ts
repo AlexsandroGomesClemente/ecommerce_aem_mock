@@ -17,12 +17,13 @@ const sampleProduct: ProductView = {
   aemContentPath: '/content/dam/ecommerce/cf/products/sku-pro-ultra-16',
   editorialContent: {
     jcrPath: '/content/dam/ecommerce/cf/products/sku-pro-ultra-16',
-    headline: 'Performance Extrema para Engenharia de Software & IA',
+    headline: 'Performance Extrema para Engenharia & Criatividade',
     richDescription: 'Chassi em alumínio aeroespacial e 64GB de memória unificada.',
     badge: 'Destaque Editorial AEM',
     highlights: ['Chip M3 Max 16-Core', '64GB RAM Unificada'],
-    imageGradient: 'linear-gradient(135deg, #1e293b 0%, #3b82f6 100%)',
+    imageGradient: 'linear-gradient(135deg, #dcede1 0%, #ffffff 100%)',
     imageIcon: 'laptop',
+    imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80',
     seoKeywords: 'ultrabook, aem'
   }
 };
@@ -37,13 +38,13 @@ describe('Front-end Unit Tests (Vue 3 + Pinia + AEM Components)', () => {
       props: {
         banner: {
           jcrPath: '/content/experience-fragments/ecommerce/br/pt/site/hero-banner/master',
-          eyebrow: 'AEM EXPERIENCE FRAGMENT',
-          title: 'Vitrine Integrada Vue + AEM',
-          subtitle: 'Subtítulo de teste editorial',
-          ctaLabel: 'Explorar Agora',
-          themeAccent: '#1e293b',
+          eyebrow: 'NOVA COLEÇÃO TECH & DESIGN',
+          title: 'Tecnologia de Alta Performance para o seu Dia a Dia',
+          subtitle: 'Descubra produtos selecionados com entrega rápida.',
+          ctaLabel: 'Explorar Produtos',
+          themeAccent: '#72b789',
           authoredBy: 'aem-author@enterprise.com',
-          lastPublished: '2026-11-08'
+          lastPublished: '2026-11-09'
         },
         protocol: 'GRAPHQL'
       }
@@ -52,18 +53,22 @@ describe('Front-end Unit Tests (Vue 3 + Pinia + AEM Components)', () => {
     expect(wrapper.attributes('data-cq-data-path')).toBe(
       '/content/experience-fragments/ecommerce/br/pt/site/hero-banner/master'
     );
-    expect(wrapper.text()).toContain('Vitrine Integrada Vue + AEM');
+    expect(wrapper.text()).toContain('Tecnologia de Alta Performance');
     expect(wrapper.text()).toContain('Consumo ativo: GRAPHQL');
   });
 
-  it('deve renderizar o ProductCatalogCard combinando dados do AEM e do PostgreSQL e emitir evento de carrinho', async () => {
+  it('deve renderizar o ProductCatalogCard com imagem e dados e emitir evento de carrinho', async () => {
     const wrapper = mount(ProductCatalogCard, {
       props: { product: sampleProduct }
     });
 
     expect(wrapper.text()).toContain('Ultrabook Quantum Pro 16" M3 Max');
     expect(wrapper.text()).toContain('Destaque Editorial AEM');
-    expect(wrapper.text()).toContain('Estoque: 15 unid.');
+    expect(wrapper.text()).toContain('15 em estoque');
+
+    const img = wrapper.find('.product-card__image');
+    expect(img.exists()).toBe(true);
+    expect(img.attributes('src')).toBe(sampleProduct.editorialContent.imageUrl);
 
     await wrapper.find('[data-testid="add-to-cart-SKU-PRO-ULTRA-16"]').trigger('click');
     expect(wrapper.emitted('add-to-cart')).toBeTruthy();
@@ -86,4 +91,3 @@ describe('Front-end Unit Tests (Vue 3 + Pinia + AEM Components)', () => {
     expect(store.cartCount).toBe(0);
   });
 });
-

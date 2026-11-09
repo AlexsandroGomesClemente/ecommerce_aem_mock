@@ -48,6 +48,7 @@ public class ApiDtos {
             List<String> highlights,
             String imageGradient,
             String imageIcon,
+            String imageUrl,
             String seoKeywords
     ) {}
 
@@ -118,4 +119,3 @@ public class ApiDtos {
             List<StructuredLogEntry> recentLogs
     ) {}
 }
-

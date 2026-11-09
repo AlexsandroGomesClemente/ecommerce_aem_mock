@@ -20,21 +20,25 @@ function formatBrl(value: number): string {
     :data-cq-data-path="product.aemContentPath"
     :data-testid="`product-card-${product.sku}`"
   >
-    <div
-      class="product-card__visual"
-      :style="{ background: product.editorialContent?.imageGradient || '#1e293b' }"
-    >
+    <div class="product-card__visual">
+      <img
+        :src="product.editorialContent?.imageUrl"
+        :alt="product.name"
+        class="product-card__image"
+        loading="lazy"
+      />
       <span class="product-card__badge">
-        {{ product.editorialContent?.badge || 'AEM Content Fragment' }}
+        {{ product.editorialContent?.badge || 'Destaque' }}
       </span>
       <span class="product-card__category">{{ product.category }}</span>
-      <div class="product-card__sku-row">
-        <code>{{ product.sku }}</code>
-        <span>★ {{ product.rating.toFixed(1) }}</span>
-      </div>
     </div>
 
     <div class="product-card__body">
+      <div class="product-card__header-info">
+        <span class="product-card__rating">★ {{ product.rating.toFixed(1) }}</span>
+        <code class="product-card__sku">{{ product.sku }}</code>
+      </div>
+
       <h3 class="product-card__title">{{ product.name }}</h3>
       <p class="product-card__headline">
         {{ product.editorialContent?.headline }}
@@ -48,19 +52,14 @@ function formatBrl(value: number): string {
           ✓ {{ item }}
         </li>
       </ul>
-
-      <div class="product-card__jcr-tag">
-        <span>AEM JCR:</span>
-        <code>{{ product.aemContentPath }}</code>
-      </div>
     </div>
 
     <div class="product-card__footer">
       <div class="product-card__pricing">
-        <span class="price-label">Preço PostgreSQL (ACID)</span>
+        <span class="price-label">Preço à vista</span>
         <strong class="price-value">{{ formatBrl(product.price) }}</strong>
         <span class="stock-pill" :class="{ 'stock-low': product.stock < 50 }">
-          Estoque: {{ product.stock }} unid.
+          {{ product.stock > 0 ? `${product.stock} em estoque` : 'Sem estoque' }}
         </span>
       </div>
 
@@ -76,4 +75,3 @@ function formatBrl(value: number): string {
     </div>
   </article>
 </template>
-

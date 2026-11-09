@@ -61,6 +61,7 @@ type AemProductEditorial {
     highlights: [String!]!
     imageGradient: String!
     imageIcon: String!
+    imageUrl: String!
     seoKeywords: String!
 }
 
@@ -120,4 +121,3 @@ type StructuredLogEntry {
     message: String!
     latencyMs: Int!
 }
-

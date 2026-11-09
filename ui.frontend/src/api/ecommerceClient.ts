@@ -70,6 +70,7 @@ export const ecommerceClient = {
               highlights
               imageGradient
               imageIcon
+              imageUrl
               seoKeywords
             }
           }
@@ -236,4 +237,3 @@ export const ecommerceClient = {
     return data.telemetrySnapshot;
   }
 };
-

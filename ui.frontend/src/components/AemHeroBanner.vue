@@ -19,7 +19,6 @@ defineEmits<{
   >
     <div class="aem-hero__meta">
       <span class="aem-badge">{{ banner.eyebrow }}</span>
-      <code class="aem-path">JCR: {{ banner.jcrPath }}</code>
       <span class="aem-protocol">Consumo ativo: {{ protocol }}</span>
     </div>
 
@@ -30,11 +29,6 @@ defineEmits<{
       <button type="button" class="btn-primary" @click="$emit('explore')">
         {{ banner.ctaLabel }}
       </button>
-      <div class="aem-author-info">
-        <span>Autoria AEM: <strong>{{ banner.authoredBy }}</strong></span>
-        <span> • Publicado em: {{ banner.lastPublished }}</span>
-      </div>
     </div>
   </section>
 </template>
-

@@ -17,6 +17,7 @@ export interface AemProductEditorial {
   highlights: string[];
   imageGradient: string;
   imageIcon: string;
+  imageUrl: string;
   seoKeywords: string;
 }
 
@@ -97,4 +98,3 @@ export interface TelemetrySnapshot {
   activeDenyListTokens: number;
   recentLogs: StructuredLogEntry[];
 }
-

@@ -7,6 +7,7 @@ import { useEcommerceStore } from './stores/useEcommerceStore';
 
 const store = useEcommerceStore();
 
+const activeTab = ref<'STORE' | 'TELEMETRY'>('STORE');
 const loginEmail = ref('alex@ecommerce.com');
 const loginPassword = ref('Senha@123');
 const paymentMethod = ref('PIX_INSTANTANEO');
@@ -40,7 +41,7 @@ async function handleLoginSubmit() {
 async function handleCheckout() {
   if (!store.user) {
     showAuthModal.value = true;
-    store.setFeedback('info', 'Autentique-se via OAuth2 Cookie HttpOnly para concluir seu pedido ACID.');
+    store.setFeedback('info', 'Faça login para concluir o pedido.');
     return;
   }
   await store.checkout(paymentMethod.value);
@@ -57,12 +58,33 @@ function scrollToCatalog() {
 
 <template>
   <div class="app-shell">
-    <!-- Top Bar Enterprise -->
+    <!-- Top Bar -->
     <header class="topbar">
       <div class="topbar__brand">
         <span class="brand-logo">⚡ QuantumStore</span>
-        <span class="brand-tag">Vue 3 + AEM ClientLibs + Java GraphQL + PostgreSQL</span>
       </div>
+
+      <!-- Navegação Principal entre Loja e Telemetria -->
+      <nav class="main-nav">
+        <button
+          type="button"
+          class="nav-tab-btn"
+          :class="{ active: activeTab === 'STORE' }"
+          data-testid="tab-store"
+          @click="activeTab = 'STORE'"
+        >
+          Loja
+        </button>
+        <button
+          type="button"
+          class="nav-tab-btn"
+          :class="{ active: activeTab === 'TELEMETRY' }"
+          data-testid="tab-telemetry"
+          @click="activeTab = 'TELEMETRY'; store.refreshTelemetry()"
+        >
+          Telemetria
+        </button>
+      </nav>
 
       <div class="topbar__controls">
         <!-- Seletor de Protocolo: GraphQL vs API REST -->
@@ -85,12 +107,12 @@ function scrollToCatalog() {
           </button>
         </div>
 
-        <!-- Status de Autenticação ADR-005 -->
+        <!-- Status de Autenticação -->
         <div v-if="store.user" class="user-chip" data-testid="authenticated-user">
           <span class="user-chip__dot"></span>
-          <span>{{ store.user.name }} ({{ store.user.planTier }})</span>
+          <span>{{ store.user.name }}</span>
           <button type="button" class="btn-link" data-testid="logout-btn" @click="store.logout()">
-            Sair (Revogar JWT)
+            Sair
           </button>
         </div>
         <button
@@ -100,7 +122,7 @@ function scrollToCatalog() {
           data-testid="open-login-btn"
           @click="showAuthModal = true"
         >
-          🔐 Entrar (Cookie HttpOnly)
+          Entrar
         </button>
 
         <button
@@ -125,8 +147,9 @@ function scrollToCatalog() {
       <button type="button" @click="store.feedbackBanner = null">✕</button>
     </div>
 
-    <main class="main-container">
-      <!-- Banner Editorial AEM (Experience Fragment) -->
+    <!-- TELA 1: LOJA / VITRINE -->
+    <main v-if="activeTab === 'STORE'" class="main-container">
+      <!-- Banner Editorial AEM -->
       <AemHeroBanner
         v-if="store.heroBanner"
         :banner="store.heroBanner"
@@ -153,22 +176,17 @@ function scrollToCatalog() {
           <input
             v-model="store.searchQuery"
             type="search"
-            placeholder="Buscar por nome, SKU ou categoria..."
+            placeholder="Buscar produto por nome ou categoria..."
             data-testid="catalog-search-input"
             @keyup.enter="store.loadStorefront()"
           />
           <button type="button" class="btn-secondary" @click="store.loadStorefront()">
-            Filtrar
+            Buscar
           </button>
         </div>
       </section>
 
-      <div class="datasource-caption">
-        <span>Fonte de Dados: <strong>{{ store.dataSourceInfo }}</strong></span>
-        <span>Segurança: <strong>{{ store.authMessage }}</strong></span>
-      </div>
-
-      <!-- Grid de Produtos Combinando AEM JCR + PostgreSQL -->
+      <!-- Grid de Produtos com Fotos -->
       <section class="products-grid" data-testid="products-grid">
         <ProductCatalogCard
           v-for="product in store.products"
@@ -178,9 +196,9 @@ function scrollToCatalog() {
         />
       </section>
 
-      <!-- Histórico de Pedidos Transacionais ACID no PostgreSQL -->
+      <!-- Histórico de Pedidos -->
       <section v-if="store.orders.length > 0" class="orders-section" data-testid="orders-section">
-        <h2>Meus Pedidos Transacionais (PostgreSQL ACID)</h2>
+        <h2>Meus Pedidos</h2>
         <div class="orders-list">
           <div v-for="order in store.orders" :key="order.orderCode" class="order-card">
             <div class="order-card__header">
@@ -192,72 +210,73 @@ function scrollToCatalog() {
             </div>
             <div class="order-card__items">
               <span v-for="item in order.items" :key="item.productSku" class="order-item-chip">
-                {{ item.quantity }}x {{ item.productName }} ({{ item.productSku }})
+                {{ item.quantity }}x {{ item.productName }}
               </span>
             </div>
           </div>
         </div>
       </section>
+    </main>
 
-      <!-- Painel de Telemetria e Observabilidade -->
+    <!-- TELA 2: TELEMETRIA SEPARADA -->
+    <main v-else-if="activeTab === 'TELEMETRY'" class="main-container">
       <TelemetryAndArchitecturePanel
         :telemetry="store.telemetry"
         @refresh="store.refreshTelemetry()"
       />
     </main>
 
-    <!-- Modal de Login OAuth2 + JWT Cookie HttpOnly (ADR-005) -->
+    <!-- Modal de Login -->
     <div v-if="showAuthModal" class="modal-backdrop" data-testid="login-modal">
       <div class="modal-card">
         <div class="modal-header">
-          <h3>Autenticação Stateless OAuth 2.0 + Cookie HttpOnly (ADR-005)</h3>
-          <button type="button" @click="showAuthModal = false">✕</button>
+          <h3>Acessar sua Conta</h3>
+          <button type="button" class="close-btn" @click="showAuthModal = false">✕</button>
         </div>
         <p class="modal-desc">
-          O token JWT assinado será entregue via Cookie <code>HttpOnly; SameSite=Lax</code>,
-          protegendo a sessão contra ataques XSS (nenhum token é salvo no <code>localStorage</code>).
+          Informe seu e-mail e senha para acessar seus pedidos e concluir compras com segurança.
         </p>
         <form @submit.prevent="handleLoginSubmit">
           <label>
-            E-mail Corporativo / Cliente
-            <input v-model="loginEmail" type="email" required data-testid="login-email-input" />
+            E-mail
+            <input v-model="loginEmail" type="email" placeholder="seu@email.com" required data-testid="login-email-input" />
           </label>
           <label>
             Senha
-            <input v-model="loginPassword" type="password" required data-testid="login-password-input" />
+            <input v-model="loginPassword" type="password" placeholder="Digite sua senha" required data-testid="login-password-input" />
           </label>
           <div class="demo-credentials">
-            <span>Credenciais pré-configuradas: <code>alex@ecommerce.com</code> / <code>Senha@123</code></span>
+            <span>Credenciais de teste: <code>alex@ecommerce.com</code> / <code>Senha@123</code></span>
           </div>
           <div class="modal-actions">
             <button type="button" class="btn-secondary" @click="showAuthModal = false">
               Cancelar
             </button>
             <button type="submit" class="btn-primary" data-testid="submit-login-btn">
-              Autenticar via Cookie HttpOnly
+              Entrar
             </button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Drawer do Carrinho e Checkout ACID -->
+    <!-- Drawer do Carrinho -->
     <aside v-if="showCartDrawer" class="cart-drawer" data-testid="cart-drawer">
       <div class="cart-drawer__header">
-        <h3>Carrinho Transacional ({{ store.cartCount }} itens)</h3>
-        <button type="button" @click="showCartDrawer = false">✕</button>
+        <h3>Seu Carrinho ({{ store.cartCount }} {{ store.cartCount === 1 ? 'item' : 'itens' }})</h3>
+        <button type="button" class="close-btn" @click="showCartDrawer = false">✕</button>
       </div>
 
       <div v-if="store.cart.length === 0" class="cart-empty">
-        Seu carrinho está vazio. Adicione itens do catálogo para testar a transação ACID no PostgreSQL.
+        Seu carrinho está vazio no momento. Adicione itens para finalizar a compra.
       </div>
 
       <div v-else class="cart-items">
         <div v-for="item in store.cart" :key="item.product.sku" class="cart-item">
-          <div>
+          <div class="cart-item__info">
             <strong>{{ item.product.name }}</strong>
             <div class="cart-item__meta">
-              <code>{{ item.product.sku }}</code> • {{ formatBrl(item.product.price) }}
+              {{ formatBrl(item.product.price) }}
             </div>
           </div>
           <div class="cart-item__qty">
@@ -279,11 +298,11 @@ function scrollToCatalog() {
 
         <div class="cart-summary">
           <label>
-            Método de Pagamento:
+            Forma de Pagamento:
             <select v-model="paymentMethod">
-              <option value="PIX_INSTANTANEO">PIX Instantâneo (0% Taxa)</option>
-              <option value="CARTAO_CREDITO_PRIME">Cartão Prime Black 12x</option>
-              <option value="BOLETO_CORPORATIVO">Faturamento Corporativo</option>
+              <option value="PIX_INSTANTANEO">PIX Instantâneo</option>
+              <option value="CARTAO_CREDITO_PRIME">Cartão de Crédito</option>
+              <option value="BOLETO_CORPORATIVO">Boleto Bancário</option>
             </select>
           </label>
           <div class="cart-total-row">
@@ -296,11 +315,10 @@ function scrollToCatalog() {
             data-testid="checkout-submit-btn"
             @click="handleCheckout"
           >
-            ✓ Finalizar Pedido ACID ({{ store.consumptionProtocol }})
+            Finalizar Compra
           </button>
         </div>
       </div>
     </aside>
   </div>
 </template>
-

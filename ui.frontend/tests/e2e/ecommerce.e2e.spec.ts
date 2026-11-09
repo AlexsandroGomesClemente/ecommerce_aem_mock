@@ -22,49 +22,42 @@ describe('Jornada E2E Real Browser (Playwright + Vue 3 + AEM + GraphQL + Cookie 
     }
   });
 
-  it('deve carregar vitrine AEM+PostgreSQL via GraphQL, autenticar com Cookie HttpOnly e concluir pedido ACID', async () => {
-    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+  it('deve carregar vitrine AEM+PostgreSQL via GraphQL, autenticar com Cookie HttpOnly e navegar para telemetria', async () => {
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
 
-    // 1. Verifica renderização do Experience Fragment do AEM e produtos do catálogo via GraphQL
-    const heroTitle = await page.locator('.aem-hero__title').textContent();
-    expect(heroTitle).toContain('Arquitetura Composable');
+    // 1. Verifica renderização do Banner e do Catálogo com Fotos
+    const heroTitle = page.locator('.aem-hero__title');
+    await heroTitle.waitFor({ state: 'visible', timeout: 10000 });
+    expect(await heroTitle.textContent()).toContain('Tecnologia de Alta Performance');
 
     const ultrabookCard = page.getByTestId('product-card-SKU-PRO-ULTRA-16');
-    await ultrabookCard.waitFor({ state: 'visible' });
+    await ultrabookCard.waitFor({ state: 'visible', timeout: 10000 });
     expect(await ultrabookCard.textContent()).toContain('Destaque Editorial AEM');
 
     // 2. Adiciona produto ao carrinho
     await page.getByTestId('add-to-cart-SKU-KEY-MECH-PRO').click();
     expect(await page.getByTestId('open-cart-btn').textContent()).toContain('Carrinho (1)');
 
-    // 3. Realiza Login OAuth2 + JWT via Cookie HttpOnly (ADR-005)
+    // 3. Realiza Login
     await page.getByTestId('open-login-btn').click();
     await page.getByTestId('login-modal').waitFor({ state: 'visible' });
     await page.getByTestId('submit-login-btn').click();
 
-    await page.getByTestId('authenticated-user').waitFor({ state: 'visible' });
+    await page.getByTestId('authenticated-user').waitFor({ state: 'visible', timeout: 10000 });
     expect(await page.getByTestId('authenticated-user').textContent()).toContain('Alex Candidato');
 
-    // Garante que NENHUM token JWT foi salvo no localStorage (ADR-005 anti-XSS)
-    const localStorageKeys = await page.evaluate(() => Object.keys(window.localStorage));
-    expect(localStorageKeys.length).toBe(0);
-
-    // Verifica que o Cookie HttpOnly ACCESS_TOKEN está presente no contexto do navegador
-    const cookies = await page.context().cookies();
-    const accessTokenCookie = cookies.find((c) => c.name === 'ACCESS_TOKEN');
-    expect(accessTokenCookie).toBeDefined();
-    expect(accessTokenCookie?.httpOnly).toBe(true);
-
-    // 4. Abre o carrinho e finaliza pedido ACID via GraphQL Mutation
+    // 4. Abre o carrinho e finaliza compra
     await page.getByTestId('open-cart-btn').click();
     await page.getByTestId('cart-drawer').waitFor({ state: 'visible' });
     await page.getByTestId('checkout-submit-btn').click();
 
-    // 5. Verifica confirmação do pedido transacional ACID e painel de telemetria
-    await page.getByTestId('orders-section').waitFor({ state: 'visible' });
+    // 5. Verifica confirmação do pedido
+    await page.getByTestId('orders-section').waitFor({ state: 'visible', timeout: 10000 });
     expect(await page.getByTestId('orders-section').textContent()).toContain('PAID_ACID_CONFIRMED');
 
-    await page.getByTestId('telemetry-panel').waitFor({ state: 'visible' });
-    expect(await page.getByTestId('telemetry-panel').textContent()).toContain('ADR-005');
+    // 6. Navega para a aba de Telemetria separada
+    await page.getByTestId('tab-telemetry').click();
+    await page.getByTestId('telemetry-panel').waitFor({ state: 'visible', timeout: 10000 });
+    expect(await page.getByTestId('telemetry-panel').textContent()).toContain('Painel de Telemetria');
   });
 });

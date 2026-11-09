@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * ADR-002 e ADR-003: Conector de Conteúdo Editorial do Adobe Experience Manager (AEM JCR).
  * Separa claramente o que é "Conteúdo Editorial" (gerenciado no JCR do AEM: banners, textos ricos,
- * SEO, destaques visuais) do que é "Dado Transacional" (gerenciado no PostgreSQL: preço, estoque, pedidos).
+ * imagens, badges, SEO) do que é "Dado Transacional" (gerenciado no PostgreSQL: preço, estoque, pedidos).
  *
  * Fornece resolução em Lote (Batch) para o DataLoader do GraphQL, eliminando o problema de N+1 queries.
  */
@@ -28,13 +28,13 @@ public class AemContentService {
     public AemHeroBanner getStorefrontHeroBanner() {
         return new AemHeroBanner(
                 "/content/experience-fragments/ecommerce/br/pt/site/hero-banner/master",
-                "AEM EXPERIENCE FRAGMENT • JCR PUBLISHED",
-                "Arquitetura Composable: Vue 3 + AEM ClientLibs + Java GraphQL BFF",
-                "Conteúdo editorial renderizado via Adobe Experience Manager combinado em tempo real com estoque e preços ACID do PostgreSQL em uma única query GraphQL.",
-                "Explorar Catálogo Unificado",
-                "linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #0ea5e9 100%)",
+                "NOVA COLEÇÃO TECH & DESIGN",
+                "Tecnologia de Alta Performance para o seu Dia a Dia",
+                "Descubra produtos selecionados com entrega rápida, garantia oficial e a melhor experiência de compra.",
+                "Explorar Produtos",
+                "linear-gradient(135deg, #72b789 0%, #95c9a6 45%, #b8dbc4 100%)",
                 "aem-author@enterprise.com",
-                "2026-11-08T21:00:00-03:00"
+                "2026-11-09T10:00:00-03:00"
         );
     }
 
@@ -43,13 +43,14 @@ public class AemContentService {
                 aemContentPath,
                 new AemProductEditorial(
                         aemContentPath,
-                        "Conteúdo Editorial Sincronizado via AEM JCR",
-                        "Content Fragment publicado pela equipe editorial no Adobe Experience Manager.",
-                        "AEM Verified",
+                        "Produto Selecionado QuantumStore",
+                        "Item verificado com qualidade garantida e suporte prioritário.",
+                        "Destaque",
                         List.of("Garantia Oficial 12 Meses", "Envio Express Prime"),
-                        "linear-gradient(135deg, #334155 0%, #0f172a 100%)",
+                        "linear-gradient(135deg, #dcede1 0%, #ffffff 100%)",
                         "box",
-                        "ecommerce, aem, vue, graphql"
+                        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80",
+                        "ecommerce, tecnologia, qualidade"
                 )
         );
     }
@@ -72,13 +73,14 @@ public class AemContentService {
                 "/content/dam/ecommerce/cf/products/sku-pro-ultra-16",
                 new AemProductEditorial(
                         "/content/dam/ecommerce/cf/products/sku-pro-ultra-16",
-                        "Performance Extrema para Engenharia de Software & IA",
-                        "Projetado com chassi unibody em alumínio aeroespacial, tela Liquid Retina XDR 120Hz e 64GB de memória unificada para compilar containers Docker e microsserviços Java em segundos.",
+                        "Performance Extrema para Engenharia & Criatividade",
+                        "Equipado com processador de última geração, tela Liquid Retina XDR 120Hz e chassi unibody ultra resistente para máxima produtividade.",
                         "Destaque Editorial AEM",
-                        List.of("Chip M3 Max 16-Core", "64GB RAM Unificada", "Bateria 22h + MagSafe"),
-                        "linear-gradient(135deg, #1e293b 0%, #3b82f6 100%)",
+                        List.of("Chip M3 Max 16-Core", "64GB RAM Unificada", "Bateria até 22h"),
+                        "linear-gradient(135deg, #dcede1 0%, #ffffff 100%)",
                         "laptop",
-                        "ultrabook, m3 max, dev workstation, aem content fragment"
+                        "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80",
+                        "ultrabook, notebook pro, engenharia, design"
                 )
         );
 
@@ -86,13 +88,14 @@ public class AemContentService {
                 "/content/dam/ecommerce/cf/products/sku-smart-5g-pro",
                 new AemProductEditorial(
                         "/content/dam/ecommerce/cf/products/sku-smart-5g-pro",
-                        "Fotografia Computacional ProRAW & Conectividade 5G Ultra",
-                        "Acabamento em titânio grau 5 com câmera periscópica 5x, gravação ProRes 4K 120fps e modem 5G de baixa latência homologado para experiências mobile de alta velocidade.",
-                        "Lançamento Black Friday",
+                        "Fotografia Computacional & Conectividade 5G",
+                        "Corpo em titânio aeroespacial, sistema de câmeras avançado com zoom óptico 5x e tela Super AMOLED com cores ultra vibrantes.",
+                        "Lançamento",
                         List.of("Titânio Aeroespacial", "Câmera Tripla 48MP Pro", "Tela Super AMOLED 120Hz"),
-                        "linear-gradient(135deg, #312e81 0%, #6366f1 100%)",
+                        "linear-gradient(135deg, #dcede1 0%, #ffffff 100%)",
                         "smartphone",
-                        "smartphone 5g, titanio, camera pro, black friday"
+                        "https://images.unsplash.com/photo-1511707171634-5f897ff02560?auto=format&fit=crop&w=600&q=80",
+                        "smartphone 5g, celular pro, fotografia, titanio"
                 )
         );
 
@@ -100,13 +103,14 @@ public class AemContentService {
                 "/content/dam/ecommerce/cf/products/sku-audio-anc-900",
                 new AemProductEditorial(
                         "/content/dam/ecommerce/cf/products/sku-audio-anc-900",
-                        "Cancelamento de Ruído Adaptativo & Áudio Espacial Lossless",
-                        "Oito microfones com beamforming e duplo processador acústico que isolam 99.4% do ruído externo. Perfeito para foco profundo em arquitetura de sistemas e chamadas executivas.",
-                        "Escolha do Editor",
-                        List.of("ANC Duplo Processador", "Autonomia de 40 Horas", "Codec Hi-Res LDAC / USB-C"),
-                        "linear-gradient(135deg, #064e3b 0%, #10b981 100%)",
+                        "Cancelamento Ativo de Ruído & Som de Alta Resolução",
+                        "Isolamento acústico inteligente com drivers de alta fidelidade e áudio espacial imersivo para total foco no trabalho e música.",
+                        "Mais Vendido",
+                        List.of("Cancelamento Ativo de Ruído", "Bateria de 40 Horas", "Codec Hi-Res Audio"),
+                        "linear-gradient(135deg, #dcede1 0%, #ffffff 100%)",
                         "headphones",
-                        "headphone anc, audio espacial, studio lossless"
+                        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80",
+                        "headphone anc, fone bluetooth, cancelamento ruido"
                 )
         );
 
@@ -114,13 +118,14 @@ public class AemContentService {
                 "/content/dam/ecommerce/cf/products/sku-monitor-oled-34",
                 new AemProductEditorial(
                         "/content/dam/ecommerce/cf/products/sku-monitor-oled-34",
-                        "Imersão UltraWide QD-OLED 21:9 com Hub Thunderbolt 4",
-                        "Painel curvo 1800R com contraste infinito 1.500.000:1, tempo de resposta de 0.03ms e KVM Switch integrado para alternar entre ambientes de desenvolvimento.",
-                        "Frete Grátis Prime",
-                        List.of("Painel QD-OLED 240Hz", "USB-C Power Delivery 96W", "99.3% DCI-P3 Calibrado"),
-                        "linear-gradient(135deg, #4c1d95 0%, #8b5cf6 100%)",
+                        "Imersão UltraWide Curvo com Cores Precisas",
+                        "Painel curvo com contraste infinito, taxa de atualização de 240Hz e conexão única USB-C com suporte a carregamento e vídeo.",
+                        "Frete Grátis",
+                        List.of("Painel Curvo 240Hz", "USB-C Power Delivery 96W", "99.3% Cores DCI-P3"),
+                        "linear-gradient(135deg, #dcede1 0%, #ffffff 100%)",
                         "monitor",
-                        "monitor oled, ultrawide 34, 240hz, thunderbolt"
+                        "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=600&q=80",
+                        "monitor ultrawide, tela oled, setup gamer, produtividade"
                 )
         );
 
@@ -128,13 +133,14 @@ public class AemContentService {
                 "/content/dam/ecommerce/cf/products/sku-watch-titan-2",
                 new AemProductEditorial(
                         "/content/dam/ecommerce/cf/products/sku-watch-titan-2",
-                        " Cristal de Safira & Telemetria Biométrica Contínua",
-                        "Caixa robusta de 49mm em titânio com GPS de dupla frequência L1+L5, sensores avançados de saúde e resistência à água até 100 metros.",
-                        "Novo no Catálogo",
-                        List.of("GPS Dupla Frequência", "Tela Safira 3000 Nits", "eSIM 4G/LTE Integrado"),
-                        "linear-gradient(135deg, #7c2d12 0%, #f97316 100%)",
+                        "Cristal de Safira & Monitoramento de Saúde 24h",
+                        "Resistência superior com GPS de dupla frequência, sensores biométricos de última geração e bateria de longa duração para treinos e esportes.",
+                        "Novo",
+                        List.of("GPS Dupla Frequência", "Vidro Safira Anti-risco", "Resistente à Água 100m"),
+                        "linear-gradient(135deg, #dcede1 0%, #ffffff 100%)",
                         "watch",
-                        "smartwatch titanio, safira, gps preciso"
+                        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80",
+                        "smartwatch, relogio titanio, esportes, saude"
                 )
         );
 
@@ -142,15 +148,15 @@ public class AemContentService {
                 "/content/dam/ecommerce/cf/products/sku-key-mech-pro",
                 new AemProductEditorial(
                         "/content/dam/ecommerce/cf/products/sku-key-mech-pro",
-                        "Switches Óptico-Mecânicos Táteis & Firmware QMK/VIA",
-                        "Construção low-profile em alumínio CNC com conexão tri-mode (2.4GHz 1000Hz, Bluetooth 5.3 e USB-C) e keycaps PBT double-shot de alta durabilidade.",
-                        "Mais Vendido",
-                        List.of("Switches Hot-Swappable", "Conexão Tri-Mode 1000Hz", "Compatível Mac/Windows/Linux"),
-                        "linear-gradient(135deg, #134e4a 0%, #14b8a6 100%)",
+                        "Digitação Precisa & Conectividade Sem Fio Tri-Mode",
+                        "Teclas mecânicas táteis confortáveis, estrutura em alumínio e iluminação suave para longas jornadas de programação e digitação.",
+                        "Escolha do Editor",
+                        List.of("Switches Mecânicos", "Conexão Bluetooth e 2.4GHz", "Compatível Mac e Windows"),
+                        "linear-gradient(135deg, #dcede1 0%, #ffffff 100%)",
                         "keyboard",
-                        "teclado mecanico, wireless, qmk via, programador"
+                        "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=600&q=80",
+                        "teclado mecanico, teclado wireless, setup clean"
                 )
         );
     }
 }
-
