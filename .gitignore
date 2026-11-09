@@ -1,6 +1,7 @@
 # Maven / Java
 target/
-!.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/apache-maven-*/
+.mvn/wrapper/*.zip
 !**/src/main/**/target/
 !**/src/test/**/target/
 *.class
@@ -35,3 +36,6 @@ pnpm-debug.log*
 Thumbs.db
 .env
 .env.local
+
+**/.mvn/wrapper/apache-maven-*/
+**/.mvn/wrapper/*.zip
