@@ -1,0 +1,123 @@
+# ADR-003: Schema GraphQL fortemente tipado atuando como BFF (Agregando PostgreSQL + AEM JCR)
+
+type Query {
+    "Retorna a vitrine completa combinando dados transacionais (PostgreSQL) e conteúdo editorial (AEM)"
+    storefrontCatalog(category: String, search: String): StorefrontCatalogResponse!
+
+    "Busca um produto específico pelo SKU com seu Content Fragment do AEM"
+    productBySku(sku: String!): ProductView
+
+    "Retorna os pedidos transacionais (ACID) do usuário autenticado ou histórico geral"
+    myOrders: [OrderView!]!
+
+    "Retorna o perfil do usuário autenticado via Cookie HttpOnly JWT"
+    me: UserProfileView
+
+    "Retorna métricas de telemetria, logs estruturados e saúde da arquitetura"
+    telemetrySnapshot: TelemetrySnapshot!
+}
+
+type Mutation {
+    "Realiza um pedido transacional ACID no PostgreSQL decrementando estoque com lock otimista"
+    createOrder(input: CreateOrderInput!): OrderView!
+}
+
+type StorefrontCatalogResponse {
+    heroBanner: AemHeroBanner!
+    products: [ProductView!]!
+    totalProducts: Int!
+    dataSourceInfo: String!
+}
+
+type AemHeroBanner {
+    jcrPath: String!
+    eyebrow: String!
+    title: String!
+    subtitle: String!
+    ctaLabel: String!
+    themeAccent: String!
+    authoredBy: String!
+    lastPublished: String!
+}
+
+type ProductView {
+    id: ID!
+    sku: String!
+    name: String!
+    category: String!
+    price: Float!
+    stock: Int!
+    rating: Float!
+    aemContentPath: String!
+    "Campo resolvido via @BatchMapping (DataLoader) para evitar N+1 queries no AEM/Banco!"
+    editorialContent: AemProductEditorial!
+}
+
+type AemProductEditorial {
+    jcrPath: String!
+    headline: String!
+    richDescription: String!
+    badge: String!
+    highlights: [String!]!
+    imageGradient: String!
+    imageIcon: String!
+    seoKeywords: String!
+}
+
+input CreateOrderInput {
+    paymentMethod: String!
+    items: [OrderItemInput!]!
+}
+
+input OrderItemInput {
+    sku: String!
+    quantity: Int!
+}
+
+type OrderView {
+    id: ID!
+    orderCode: String!
+    userEmail: String!
+    totalAmount: Float!
+    status: String!
+    paymentMethod: String!
+    createdAt: String!
+    items: [OrderItemView!]!
+}
+
+type OrderItemView {
+    productSku: String!
+    productName: String!
+    quantity: Int!
+    unitPrice: Float!
+}
+
+type UserProfileView {
+    id: ID!
+    name: String!
+    email: String!
+    role: String!
+    planTier: String!
+    authenticatedVia: String!
+}
+
+type TelemetrySnapshot {
+    totalRequests: Int!
+    graphqlRequests: Int!
+    restRequests: Int!
+    ordersCreated: Int!
+    avgLatencyMs: Float!
+    p95LatencyMs: Float!
+    activeDenyListTokens: Int!
+    recentLogs: [StructuredLogEntry!]!
+}
+
+type StructuredLogEntry {
+    timestamp: String!
+    correlationId: String!
+    level: String!
+    component: String!
+    message: String!
+    latencyMs: Int!
+}
+
