@@ -17,11 +17,11 @@ Em conformidade com o arquivo `docs/introducao.md` e os requisitos de testes de 
 | **Total de Requisições Simultâneas** | 500 | 5000 | 500 / 5.000 |
 | **Requisições com Sucesso (HTTP 200)** | 500 | 5000 | 100% |
 | **Taxa de Erro** | 0.00% | 0.00% | < 1.00% |
-| **Throughput (Req/seg)** | **562.9 req/s** | **614.0 req/s** | Alta vazão |
-| **Latência Média** | 104.90 ms | 93.54 ms | - |
-| **Latência Mediana (p50)** | 103.79 ms | 83.75 ms | - |
-| **Latência Percentil 95 (p95)** | **174.28 ms** | **192.28 ms** | **< 200 ms** |
-| **Latência Percentil 99 (p99)** | 180.63 ms | 253.98 ms | - |
+| **Throughput (Req/seg)** | **2425.9 req/s** | **2247.1 req/s** | Alta vazão |
+| **Latência Média** | 26.59 ms | 27.35 ms | - |
+| **Latência Mediana (p50)** | 26.86 ms | 27.38 ms | - |
+| **Latência Percentil 95 (p95)** | **43.39 ms** | **46.08 ms** | **< 200 ms** |
+| **Latência Percentil 99 (p99)** | 46.11 ms | 52.43 ms | - |
 | **Status do Gate CI/CD** | **APROVADO ✅** | **APROVADO ✅** | Bloqueia se falhar |
 
 ---
