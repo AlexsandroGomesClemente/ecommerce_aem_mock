@@ -10,6 +10,13 @@ import type {
   UserProfileView
 } from '../types/ecommerce';
 
+export interface ToastMessage {
+  id: string;
+  type: 'success' | 'error' | 'info';
+  title: string;
+  message: string;
+}
+
 export const useEcommerceStore = defineStore('ecommerce', () => {
   const heroBanner = ref<AemHeroBanner | null>(null);
   const products = ref<ProductView[]>([]);
@@ -20,13 +27,15 @@ export const useEcommerceStore = defineStore('ecommerce', () => {
 
   const cart = ref<CartItem[]>([]);
   const user = ref<UserProfileView | null>(null);
-  const authMessage = ref<string>('Sessão anônima (Nenhum JWT no localStorage - ADR-005)');
+  const authMessage = ref<string>('Sessão anônima');
   const cookiePolicy = ref<string>('HttpOnly; Secure; SameSite=Lax');
 
   const orders = ref<OrderView[]>([]);
   const telemetry = ref<TelemetrySnapshot | null>(null);
   const loading = ref<boolean>(false);
-  const feedbackBanner = ref<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+
+  // Sistema de Toasts Notificações Flutuantes
+  const toasts = ref<ToastMessage[]>([]);
 
   const cartCount = computed(() =>
     cart.value.reduce((acc, item) => acc + item.quantity, 0)
@@ -36,8 +45,25 @@ export const useEcommerceStore = defineStore('ecommerce', () => {
     cart.value.reduce((acc, item) => acc + item.product.price * item.quantity, 0)
   );
 
-  function setFeedback(type: 'success' | 'error' | 'info', text: string) {
-    feedbackBanner.value = { type, text };
+  function addToast(type: 'success' | 'error' | 'info', title: string, message: string, durationMs = 3800) {
+    const id = Math.random().toString(36).substring(2, 9);
+    toasts.value.push({ id, type, title, message });
+
+    setTimeout(() => {
+      removeToast(id);
+    }, durationMs);
+  }
+
+  function removeToast(id: string) {
+    const idx = toasts.value.findIndex((t) => t.id === id);
+    if (idx !== -1) {
+      toasts.value.splice(idx, 1);
+    }
+  }
+
+  function setFeedback(type: 'success' | 'error' | 'info', message: string) {
+    const title = type === 'success' ? 'Sucesso' : type === 'error' ? 'Atenção' : 'Informação';
+    addToast(type, title, message);
   }
 
   async function loadStorefront() {
@@ -53,7 +79,7 @@ export const useEcommerceStore = defineStore('ecommerce', () => {
       dataSourceInfo.value = response.dataSourceInfo;
       await refreshTelemetry();
     } catch (err: any) {
-      setFeedback('error', err?.message || 'Erro ao carregar vitrine do e-commerce.');
+      addToast('error', 'Erro ao carregar', err?.message || 'Falha ao buscar produtos da vitrine.');
     } finally {
       loading.value = false;
     }
@@ -67,16 +93,16 @@ export const useEcommerceStore = defineStore('ecommerce', () => {
       cookiePolicy.value = res.cookiePolicy;
 
       if (res.authenticated) {
-        setFeedback('success', `Bem-vindo, ${res.user?.name}! Autenticado via Cookie HttpOnly (ADR-005).`);
+        addToast('success', 'Login Realizado', `Bem-vindo de volta, ${res.user?.name || 'Cliente'}!`);
         await loadOrders();
         await refreshTelemetry();
         return true;
       } else {
-        setFeedback('error', res.message);
+        addToast('error', 'Falha no Login', res.message);
         return false;
       }
     } catch (err: any) {
-      setFeedback('error', err?.message || 'Erro ao autenticar.');
+      addToast('error', 'Falha de Autenticação', err?.message || 'Erro de conexão.');
       return false;
     }
   }
@@ -87,7 +113,7 @@ export const useEcommerceStore = defineStore('ecommerce', () => {
     authMessage.value = res.message;
     cookiePolicy.value = res.cookiePolicy;
     orders.value = [];
-    setFeedback('info', res.message);
+    addToast('info', 'Sessão Encerrada', 'Você saiu da sua conta com sucesso.');
     await refreshTelemetry();
   }
 
@@ -110,18 +136,23 @@ export const useEcommerceStore = defineStore('ecommerce', () => {
     if (existing) {
       if (existing.quantity < product.stock) {
         existing.quantity += 1;
+        addToast('success', 'Carrinho Atualizado', `+1 unidade de "${product.name}" adicionada.`);
+      } else {
+        addToast('error', 'Estoque Limite', `Não há mais unidades disponíveis de "${product.name}".`);
       }
     } else {
       cart.value.push({ product, quantity: 1 });
+      addToast('success', 'Produto Adicionado', `"${product.name}" foi colocado no seu carrinho.`);
     }
-    setFeedback('info', `${product.name} adicionado ao carrinho.`);
   }
 
   function updateCartQuantity(sku: string, quantity: number) {
     const idx = cart.value.findIndex((item) => item.product.sku === sku);
     if (idx === -1) return;
+    const productName = cart.value[idx].product.name;
     if (quantity <= 0) {
       cart.value.splice(idx, 1);
+      addToast('info', 'Item Removido', `"${productName}" foi removido do carrinho.`);
     } else {
       cart.value[idx].quantity = quantity;
     }
@@ -129,11 +160,12 @@ export const useEcommerceStore = defineStore('ecommerce', () => {
 
   function clearCart() {
     cart.value = [];
+    addToast('info', 'Carrinho Limpo', 'Todos os itens foram esvaziados.');
   }
 
   async function checkout(paymentMethod = 'PIX_INSTANTANEO'): Promise<OrderView | null> {
     if (cart.value.length === 0) {
-      setFeedback('error', 'Adicione pelo menos 1 produto ao carrinho antes de finalizar.');
+      addToast('error', 'Carrinho Vazio', 'Adicione produtos antes de finalizar a compra.');
       return null;
     }
 
@@ -149,15 +181,16 @@ export const useEcommerceStore = defineStore('ecommerce', () => {
           : await ecommerceClient.createOrderViaRest(paymentMethod, itemsPayload);
 
       clearCart();
-      setFeedback(
+      addToast(
         'success',
-        `Pedido ${createdOrder.orderCode} confirmado com transação ACID no PostgreSQL!`
+        'Pedido Confirmado!',
+        `Pedido #${createdOrder.orderCode} gerado com sucesso. Pagamento via ${paymentMethod}.`
       );
       await loadStorefront();
       await loadOrders();
       return createdOrder;
     } catch (err: any) {
-      setFeedback('error', err?.message || 'Faça login (Cookie HttpOnly) para concluir o checkout.');
+      addToast('error', 'Não foi possível finalizar', err?.message || 'Faça login para concluir o pedido.');
       return null;
     }
   }
@@ -174,7 +207,7 @@ export const useEcommerceStore = defineStore('ecommerce', () => {
     try {
       telemetry.value = await ecommerceClient.fetchTelemetryViaGraphQl();
     } catch {
-      // Ignora se backend estiver indisponível no teste unitário isolado
+      // Ignora se backend estiver indisponível
     }
   }
 
@@ -194,7 +227,9 @@ export const useEcommerceStore = defineStore('ecommerce', () => {
     orders,
     telemetry,
     loading,
-    feedbackBanner,
+    toasts,
+    addToast,
+    removeToast,
     setFeedback,
     loadStorefront,
     login,
@@ -208,4 +243,3 @@ export const useEcommerceStore = defineStore('ecommerce', () => {
     refreshTelemetry
   };
 });
-

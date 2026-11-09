@@ -24,11 +24,13 @@ onMounted(async () => {
 async function handleCategoryChange(cat: string) {
   store.selectedCategory = cat;
   await store.loadStorefront();
+  store.addToast('info', 'Filtro Aplicado', `Categoria alterada para: ${cat}`);
 }
 
 async function handleProtocolToggle(protocol: 'GRAPHQL' | 'REST_API') {
   store.consumptionProtocol = protocol;
   await store.loadStorefront();
+  store.addToast('info', 'Protocolo Alterado', `Consumo ativo alternado para: ${protocol}`);
 }
 
 async function handleLoginSubmit() {
@@ -41,7 +43,7 @@ async function handleLoginSubmit() {
 async function handleCheckout() {
   if (!store.user) {
     showAuthModal.value = true;
-    store.setFeedback('info', 'Faça login para concluir o pedido.');
+    store.addToast('info', 'Login Necessário', 'Acesse sua conta para concluir a compra.');
     return;
   }
   await store.checkout(paymentMethod.value);
@@ -136,15 +138,28 @@ function scrollToCatalog() {
       </div>
     </header>
 
-    <!-- Notificação / Feedback -->
-    <div
-      v-if="store.feedbackBanner"
-      class="feedback-banner"
-      :class="`feedback-${store.feedbackBanner.type}`"
-      data-testid="feedback-banner"
-    >
-      <span>{{ store.feedbackBanner.text }}</span>
-      <button type="button" @click="store.feedbackBanner = null">✕</button>
+    <!-- Sistema Flutuante de Toasts Notificações -->
+    <div class="toast-container" aria-live="polite" data-testid="toast-container">
+      <TransitionGroup name="toast">
+        <div
+          v-for="toast in store.toasts"
+          :key="toast.id"
+          class="toast-card"
+          :class="`toast-${toast.type}`"
+          data-testid="toast-item"
+        >
+          <div class="toast-icon">
+            <span v-if="toast.type === 'success'">✓</span>
+            <span v-else-if="toast.type === 'error'">✕</span>
+            <span v-else>ℹ</span>
+          </div>
+          <div class="toast-content">
+            <strong class="toast-title">{{ toast.title }}</strong>
+            <p class="toast-message">{{ toast.message }}</p>
+          </div>
+          <button type="button" class="toast-close" @click="store.removeToast(toast.id)">✕</button>
+        </div>
+      </TransitionGroup>
     </div>
 
     <!-- TELA 1: LOJA / VITRINE -->
