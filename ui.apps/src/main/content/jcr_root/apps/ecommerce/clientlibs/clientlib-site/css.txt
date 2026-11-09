@@ -1,0 +1,2 @@
+#base=css
+aem-vue-style.BDwCpgr4.css

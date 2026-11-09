@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ADR-004: Gerado automaticamente pelo pipeline Vite -> AEM ClientLibs -->
+<jcr:root xmlns:cq="http://www.day.com/jcr/cq/1.0"
+          xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          jcr:primaryType="cq:ClientLibraryFolder"
+          allowProxy="{Boolean}true"
+          categories="[ecommerce.site,ecommerce.vue.spa]"
+          dependencies="[aem.core.wcm.components.commons.site]"/>
