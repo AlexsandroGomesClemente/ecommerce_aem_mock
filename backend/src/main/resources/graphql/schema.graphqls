@@ -1,4 +1,4 @@
-# ADR-003: Schema GraphQL fortemente tipado atuando como BFF (Agregando PostgreSQL + AEM JCR)
+# Schema GraphQL fortemente tipado atuando como BFF (Agregando PostgreSQL + AEM JCR)
 
 type Query {
     "Retorna a vitrine completa combinando dados transacionais (PostgreSQL) e conteúdo editorial (AEM)"

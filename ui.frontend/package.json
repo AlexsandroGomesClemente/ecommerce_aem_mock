@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Front-end Vue 3 + TypeScript + Pinia integrado ao AEM ClientLibs (ADR-004) e GraphQL BFF (ADR-003)",
+  "description": "Front-end Vue 3 + TypeScript + Pinia integrado ao AEM ClientLibs e GraphQL BFF",
   "scripts": {
     "dev": "vite --port 5173",
     "build": "vite build && node scripts/aem-clientlib-generator.mjs",

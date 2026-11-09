@@ -1,4 +1,4 @@
-# ADR-001: Multi-stage Dockerfile para o Back-end Java (Spring Boot 3 + GraphQL + PostgreSQL)
+# Multi-stage Dockerfile para o Back-end Java (Spring Boot 3 + GraphQL + PostgreSQL)
 FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
 
@@ -14,5 +14,5 @@ WORKDIR /app
 COPY --from=build /app/target/ecommerce-bff-backend-1.0.0.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:+UseZGC", "-Xms256m", "-Xmx1024m", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:+UseG1GC", "-Xms384m", "-Xmx1024m", "-jar", "app.jar"]
 

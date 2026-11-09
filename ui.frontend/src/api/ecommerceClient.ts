@@ -13,7 +13,7 @@ function generateCorrelationId(prefix = 'vue'): string {
 }
 
 /**
- * ADR-003 & ADR-005: Cliente unificado GraphQL + REST API.
+ * Cliente unificado GraphQL + REST API.
  * Utiliza `credentials: 'include'` em todas as chamadas para trafegar o Cookie HttpOnly
  * de forma transparente e segura contra ataques XSS (nenhum token é salvo no localStorage).
  */

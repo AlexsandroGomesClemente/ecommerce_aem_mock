@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * ADR-002: Camada de serviço transacional (ACID) para criação de pedidos,
+ * Camada de serviço transacional (ACID) para criação de pedidos,
  * atualização atômica de estoque com lock otimista (@Version) e registro de auditoria no PostgreSQL.
  */
 @Service

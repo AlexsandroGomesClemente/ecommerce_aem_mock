@@ -1,12 +1,12 @@
 /**
- * ADR-006: Executor Automatizado de Testes de Carga e Stress (500 e 5.000 Usuários Simultâneos)
+ * Executor Automatizado de Testes de Carga e Stress (500 e 5.000 Usuários Simultâneos)
  *
  * Executa o benchmark real contra o Back-end Java (Spring Boot + GraphQL DataLoader + PostgreSQL/H2)
  * simulando exatamente as duas cargas exigidas:
  *   - 500 usuários simultâneos
  *   - 5.000 usuários simultâneos
  *
- * Valida o SLO da ADR-006 (95% das requisições < 200ms) e gera automaticamente o relatório
+ * Valida o SLO de Produção (95% das requisições < 200ms) e gera automaticamente o relatório
  * consolidado em `load-tests/RELATORIO_TESTE_CARGA.md`.
  */
 import fs from 'node:fs';
@@ -21,6 +21,7 @@ const PORT = Number(process.env.LOAD_PORT || 8080);
 
 const agent = new http.Agent({
   keepAlive: true,
+  keepAliveMsecs: 60000,
   maxSockets: 2048,
   maxFreeSockets: 512,
   timeout: 15000
@@ -78,7 +79,7 @@ function percentile(sortedArr, p) {
 
 async function runScenario(totalSimultaneousUsers, maxWaveConcurrency = 100) {
   console.log(`\n===================================================================`);
-  console.log(`[ADR-006 Load Test] Iniciando cenário: ${totalSimultaneousUsers} usuários simultâneos`);
+  console.log(`[Teste de Carga & Stress] Iniciando cenário: ${totalSimultaneousUsers} usuários simultâneos`);
   console.log(`===================================================================`);
 
   const latencies = [];
@@ -129,37 +130,38 @@ async function runScenario(totalSimultaneousUsers, maxWaveConcurrency = 100) {
   console.log(` -> Sucesso: ${summary.successCount}/${summary.users} (Erro: ${summary.errorRatePercent}%)`);
   console.log(` -> Throughput: ${summary.rps} req/s | Tempo total: ${summary.totalTimeSec}s`);
   console.log(` -> Latência Média: ${summary.avgMs}ms | p50: ${summary.p50Ms}ms | p95: ${summary.p95Ms}ms | p99: ${summary.p99Ms}ms`);
-  console.log(` -> SLO ADR-006 (p95 < 200ms): ${summary.sloPassed ? 'APROVADO ✅' : 'REPROVADO ❌'}`);
+  console.log(` -> SLO (p95 < 200ms): ${summary.sloPassed ? 'APROVADO ✅' : 'REPROVADO ❌'}`);
 
   return summary;
 }
 
 async function main() {
   console.log('[Warmup] Aquecendo JVM, compilação JIT e conexões Keep-Alive do Back-end...');
-  // 4 rodadas progressivas de aquecimento para garantir que o pool e o JIT do Java estejam quentes
-  for (let w = 1; w <= 4; w++) {
+  // 6 rodadas progressivas de aquecimento para garantir que o pool e o JIT do Java estejam quentes
+  for (let w = 1; w <= 6; w++) {
     await Promise.all(Array.from({ length: 100 }, (_, idx) => sendGraphQlRequest(`warmup-${w}-${idx}`)));
+    await new Promise((r) => setTimeout(r, 60));
   }
 
   // Executa os dois cenários garantindo ondas otimizadas para o loop assíncrono
   const res500 = await runScenario(500, 100);
   const res5000 = await runScenario(5000, 100);
 
-  const reportMarkdown = `# Relatório Oficial de Testes de Carga — 500 e 5.000 Usuários Simultâneos (ADR-006)
+  const reportMarkdown = `# Relatório Oficial de Testes de Carga — 500 e 5.000 Usuários Simultâneos
 
 ## 1. Contexto e Objetivo
-Em conformidade com o arquivo \`docs/introducao.md\` e a **ADR-006 (Testes de Carga e Stress Contínuos na Esteira CI/CD)**, a aplicação foi submetida a dois cenários de estresse simulando a jornada de vitrine unificada (**AEM Experience Fragment + Catálogo PostgreSQL via GraphQL com \`@BatchMapping\` DataLoader**):
+Em conformidade com o arquivo \`docs/introducao.md\` e os requisitos de testes de carga contínuos na esteira CI/CD, a aplicação foi submetida a dois cenários de estresse simulando a jornada de vitrine unificada (**AEM Experience Fragment + Catálogo PostgreSQL via GraphQL com \`@BatchMapping\` DataLoader**):
 
 1. **Cenário 1**: **500 usuários simultâneos**
 2. **Cenário 2**: **5.000 usuários simultâneos**
 
-- **SLO Exigido pela ADR-006**: \`p(95) < 200ms\` e taxa de erro \`< 1%\`.
+- **SLO Exigido**: \`p(95) < 200ms\` e taxa de erro \`< 1%\`.
 
 ---
 
 ## 2. Resultados Consolidados
 
-| Métrica | Cenário 1: **500 Usuários Simultâneos** | Cenário 2: **5.000 Usuários Simultâneos** | Meta SLO (ADR-006) |
+| Métrica | Cenário 1: **500 Usuários Simultâneos** | Cenário 2: **5.000 Usuários Simultâneos** | Meta SLO |
 | :--- | :---: | :---: | :---: |
 | **Total de Requisições Simultâneas** | ${res500.users} | ${res5000.users} | 500 / 5.000 |
 | **Requisições com Sucesso (HTTP 200)** | ${res500.successCount} | ${res5000.successCount} | 100% |
@@ -174,14 +176,15 @@ Em conformidade com o arquivo \`docs/introducao.md\` e a **ADR-006 (Testes de Ca
 ---
 
 ## 3. Por que o Back-end Java suportou 5.000 usuários com baixa latência?
-1. **Eliminação de N+1 Queries com DataLoader (\`ADR-003\`)**: O uso de \`@BatchMapping\` no \`GraphQlEcommerceController\` resolve os metadados editoriais do AEM em lote (1 chamada em batch em vez de 6 chamadas por usuário, economizando **30.000 chamadas internas** no cenário de 5.000 usuários!).
-2. **Autenticação Stateless via JWT Cookie HttpOnly (\`ADR-005\`)**: A validação criptográfica do token não realiza \`SELECT\` de sessão no PostgreSQL a cada requisição.
+1. **Eliminação de N+1 Queries com DataLoader**: O uso de \`@BatchMapping\` no \`GraphQlEcommerceController\` resolve os metadados editoriais do AEM em lote (1 chamada em batch em vez de 6 chamadas por usuário, economizando **30.000 chamadas internas** no cenário de 5.000 usuários!).
+2. **Autenticação Stateless via JWT Cookie HttpOnly**: A validação criptográfica do token não realiza \`SELECT\` de sessão no PostgreSQL a cada requisição.
 3. **Cache de Catálogo & Pool Otimizado**: Camada de serviço com cache em memória para consultas repetitivas de vitrine e pool HikariCP dimensionado.
 `;
 
   const reportPath = path.join(__dirname, 'RELATORIO_TESTE_CARGA.md');
   fs.writeFileSync(reportPath, reportMarkdown, 'utf-8');
-  console.log(`\n[ADR-006] Relatório salvo em: ${reportPath}`);
+  console.log(`\n[Load Test] Relatório salvo em: ${reportPath}`);
+  agent.destroy();
   agent.destroy();
 
   if (!res500.sloPassed || !res5000.sloPassed) {

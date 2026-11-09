@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * ADR-005: Filtro de autenticação Stateless que extrai o JWT prioritariamente
+ * Filtro de autenticação Stateless que extrai o JWT prioritariamente
  * de Cookies HttpOnly (protegendo contra XSS no navegador) e valida criptograficamente
  * a assinatura sem precisar consultar o PostgreSQL a cada requisição.
  */

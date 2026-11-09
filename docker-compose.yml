@@ -1,4 +1,4 @@
-# ADR-001: Orquestração completa do Ecossistema com Docker Compose
+# Orquestração completa do Ecossistema com Docker Compose
 services:
   postgres:
     image: postgres:16-alpine
@@ -12,7 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d ecommerce"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d ecommerce" ]
       interval: 5s
       timeout: 5s
       retries: 10

@@ -1,4 +1,4 @@
-# ADR-001 & ADR-004: Multi-stage Dockerfile para Vue 3 + Vite + AEM ClientLibs + Nginx
+# Multi-stage Dockerfile para Vue 3 + Vite + AEM ClientLibs + Nginx
 FROM node:20-alpine AS build
 WORKDIR /app
 

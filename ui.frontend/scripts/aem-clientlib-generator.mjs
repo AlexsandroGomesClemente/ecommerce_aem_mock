@@ -1,5 +1,5 @@
 /**
- * ADR-004: Pipeline de Build do Front-end (Vue.js no AEM)
+ * Pipeline de Build do Front-end (Vue.js no AEM)
  *
  * Este script é executado automaticamente após o `vite build`.
  * Ele lê os arquivos JS e CSS gerados (com hash) em `ui.frontend/dist/assets`,
@@ -51,7 +51,7 @@ const jsTxtContent = `#base=js\n${jsFiles.join('\n')}\n`;
 const cssTxtContent = `#base=css\n${cssFiles.join('\n')}\n`;
 
 const contentXml = `<?xml version="1.0" encoding="UTF-8"?>
-<!-- ADR-004: Gerado automaticamente pelo pipeline Vite -> AEM ClientLibs -->
+<!-- Gerado automaticamente pelo pipeline Vite -> AEM ClientLibs -->
 <jcr:root xmlns:cq="http://www.day.com/jcr/cq/1.0"
           xmlns:jcr="http://www.jcp.org/jcr/1.0"
           jcr:primaryType="cq:ClientLibraryFolder"
@@ -64,7 +64,7 @@ fs.writeFileSync(path.join(clientLibRoot, 'js.txt'), jsTxtContent, 'utf-8');
 fs.writeFileSync(path.join(clientLibRoot, 'css.txt'), cssTxtContent, 'utf-8');
 fs.writeFileSync(path.join(clientLibRoot, '.content.xml'), contentXml, 'utf-8');
 
-console.log('[ADR-004 AEM ClientLib Generator] Pacote ClientLibs atualizado com sucesso em:');
+console.log('[AEM ClientLib Generator] Pacote ClientLibs atualizado com sucesso em:');
 console.log('  ->', clientLibRoot);
 console.log('  -> JS mapeados:', jsFiles);
 console.log('  -> CSS mapeados:', cssFiles);

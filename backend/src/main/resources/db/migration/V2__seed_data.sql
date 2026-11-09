@@ -1,8 +1,8 @@
--- ADR-002: Dados Transacionais Iniciais (Usuários e Catálogo com vínculo ao JCR do AEM)
+-- Dados Transacionais Iniciais (Usuários e Catálogo com vínculo ao JCR do AEM)
 -- Senha padrão para ambos os usuários de demonstração: "Senha@123" (hash BCrypt)
 
 INSERT INTO users (name, email, password_hash, role, plan_tier) VALUES
-('Alex Candidato (Cliente Prime)', 'alex@ecommerce.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'ROLE_CUSTOMER', 'PRIME_BLACK'),
+('Alexsandro Clemente (Cliente Prime)', 'alex@ecommerce.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'ROLE_CUSTOMER', 'PRIME_BLACK'),
 ('Gestor Entrevistador (Admin)', 'gestor@ecommerce.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'ROLE_ADMIN', 'ENTERPRISE_ADMIN');
 
 INSERT INTO products (sku, name, category, price, stock, rating, aem_content_path) VALUES

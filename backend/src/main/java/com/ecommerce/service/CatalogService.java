@@ -8,6 +8,7 @@ import com.ecommerce.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -27,14 +28,23 @@ public class CatalogService {
         this.aemContentService = aemContentService;
     }
 
+    private String normalize(String input) {
+        if (input == null) return "";
+        return Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .trim();
+    }
+
     /**
-     * ADR-003: Cache inteligente na camada de serviço do BFF GraphQL/REST,
+     * Cache inteligente na camada de serviço do BFF GraphQL/REST,
      * invalidado automaticamente em qualquer mutação transacional de estoque (OrderService).
      */
-    @Transactional(readOnly = true)
     public StorefrontCatalogResponse getStorefrontCatalog(String category, String search, boolean eagerEditorial) {
-        String cacheKey = (category == null ? "ALL" : category.trim().toUpperCase(Locale.ROOT))
-                + "|" + (search == null ? "" : search.trim().toLowerCase(Locale.ROOT))
+        String normCat = normalize(category);
+        String normSearch = normalize(search);
+        String cacheKey = (normCat.isEmpty() || "todos".equals(normCat) ? "ALL" : normCat)
+                + "|" + normSearch
                 + "|" + eagerEditorial;
 
         return catalogReadCache.computeIfAbsent(cacheKey, key -> loadCatalogFromDatabase(category, search, eagerEditorial));
@@ -44,22 +54,25 @@ public class CatalogService {
         catalogReadCache.clear();
     }
 
-    private StorefrontCatalogResponse loadCatalogFromDatabase(String category, String search, boolean eagerEditorial) {
-        List<ProductEntity> entities;
+    @Transactional(readOnly = true)
+    public StorefrontCatalogResponse loadCatalogFromDatabase(String category, String search, boolean eagerEditorial) {
+        List<ProductEntity> entities = productRepository.findAll().stream()
+                .sorted(Comparator.comparing(ProductEntity::getId))
+                .toList();
+
         if (category != null && !category.isBlank() && !"TODOS".equalsIgnoreCase(category)) {
-            entities = productRepository.findByCategoryIgnoreCaseOrderByIdAsc(category.trim());
-        } else {
-            entities = productRepository.findAll().stream()
-                    .sorted(Comparator.comparing(ProductEntity::getId))
+            String normCat = normalize(category);
+            entities = entities.stream()
+                    .filter(p -> normalize(p.getCategory()).equals(normCat))
                     .toList();
         }
 
         if (search != null && !search.isBlank()) {
-            String term = search.trim().toLowerCase(Locale.ROOT);
+            String normTerm = normalize(search);
             entities = entities.stream()
-                    .filter(p -> p.getName().toLowerCase(Locale.ROOT).contains(term)
-                            || p.getSku().toLowerCase(Locale.ROOT).contains(term)
-                            || p.getCategory().toLowerCase(Locale.ROOT).contains(term))
+                    .filter(p -> normalize(p.getName()).contains(normTerm)
+                            || normalize(p.getSku()).contains(normTerm)
+                            || normalize(p.getCategory()).contains(normTerm))
                     .toList();
         }
 

@@ -1,4 +1,4 @@
--- ADR-002: Schema Relacional Transacional gerenciado pelo Flyway (PostgreSQL)
+-- Schema Relacional Transacional gerenciado pelo Flyway (PostgreSQL)
 
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,

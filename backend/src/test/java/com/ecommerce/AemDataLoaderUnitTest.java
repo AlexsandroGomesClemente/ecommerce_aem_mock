@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AemDataLoaderUnitTest {
 
     @Test
-    @DisplayName("ADR-003: Deve resolver múltiplos Content Fragments do AEM em lote (Batch DataLoader) evitando N+1")
+    @DisplayName("Deve resolver múltiplos Content Fragments do AEM em lote (Batch DataLoader) evitando N+1")
     void shouldResolveAemContentFragmentsInBatch() {
         AemContentService aemContentService = new AemContentService();
 

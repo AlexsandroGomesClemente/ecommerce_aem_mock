@@ -24,7 +24,7 @@ class EcommerceBffIntegrationTest {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("ADR-002 + ADR-003: Deve agregar dados do PostgreSQL e do AEM em uma única chamada GraphQL com DataLoader")
+    @DisplayName("Deve agregar dados do PostgreSQL e do AEM em uma única chamada GraphQL com DataLoader")
     void shouldExecuteGraphQlStorefrontQueryCombiningPostgresAndAem() throws Exception {
         String graphqlPayload = """
                 {
@@ -46,9 +46,9 @@ class EcommerceBffIntegrationTest {
     }
 
     @Test
-    @DisplayName("ADR-005 + ADR-002: Deve autenticar via Cookie HttpOnly, criar pedido ACID via GraphQL e revogar token no Logout")
+    @DisplayName("Deve autenticar via Cookie HttpOnly, criar pedido ACID via GraphQL e revogar token no Logout")
     void shouldAuthenticateViaHttpOnlyCookieCreateAcidOrderAndRevokeOnLogout() throws Exception {
-        // 1. Login emitindo Cookie HttpOnly (ADR-005)
+        // 1. Login emitindo Cookie HttpOnly
         String loginJson = """
                 {
                   "email": "alex@ecommerce.com",
@@ -72,7 +72,7 @@ class EcommerceBffIntegrationTest {
         assertThat(accessTokenCookie).isNotNull();
         assertThat(accessTokenCookie.isHttpOnly()).isTrue();
 
-        // 2. Mutation GraphQL protegida por Cookie HttpOnly para criar pedido transacional ACID (ADR-002)
+        // 2. Mutation GraphQL protegida por Cookie HttpOnly para criar pedido transacional ACID
         String createOrderGraphQl = """
                 {
                   "query": "mutation { createOrder(input: { paymentMethod: \\"PIX_INSTANTANEO\\", items: [{ sku: \\"SKU-KEY-MECH-PRO\\", quantity: 2 }] }) { orderCode status totalAmount items { productSku quantity } } }"
@@ -88,7 +88,7 @@ class EcommerceBffIntegrationTest {
                 .andExpect(jsonPath("$.data.createOrder.totalAmount").value(1799.8))
                 .andExpect(jsonPath("$.data.createOrder.items[0].productSku").value("SKU-KEY-MECH-PRO"));
 
-        // 3. Logout adicionando o JTI do token na Deny List (ADR-005)
+        // 3. Logout adicionando o JTI do token na Deny List
         mockMvc.perform(post("/api/v1/auth/logout")
                         .cookie(accessTokenCookie))
                 .andExpect(status().isOk())

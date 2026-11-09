@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * ADR-005 (Consequência): Como o JWT é stateless, invalidar um token antes da expiração
+ * Como o JWT é stateless, invalidar um token antes da expiração
  * (ex: logout forçado ou revogação de sessão) exige uma Deny List em memória/cache.
  */
 @Service

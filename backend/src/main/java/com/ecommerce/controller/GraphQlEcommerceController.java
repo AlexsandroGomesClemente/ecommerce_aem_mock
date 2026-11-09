@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * ADR-003: Camada BFF em GraphQL que unifica dados transacionais do PostgreSQL
+ * Camada BFF em GraphQL que unifica dados transacionais do PostgreSQL
  * com conteúdos editoriais do Adobe Experience Manager (AEM).
  *
  * Implementa @BatchMapping (DataLoader) para eliminar o problema de "N+1 queries"
@@ -63,7 +63,7 @@ public class GraphQlEcommerceController {
     }
 
     /**
-     * ADR-003: Padrão DataLoader via @BatchMapping.
+     * Padrão DataLoader via @BatchMapping.
      * Em vez de executar N chamadas separadas para buscar o Content Fragment do AEM de cada produto,
      * o Spring for GraphQL agrupa todos os ProductView da resposta e invoca este método UMA ÚNICA VEZ.
      */

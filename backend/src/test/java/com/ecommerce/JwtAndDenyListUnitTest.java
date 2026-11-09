@@ -17,10 +17,10 @@ class JwtAndDenyListUnitTest {
     private static final String TEST_SECRET = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
 
     @Test
-    @DisplayName("ADR-005: Deve emitir e validar criptograficamente o JWT Stateless sem consultar banco de dados")
+    @DisplayName("Deve emitir e validar criptograficamente o JWT Stateless sem consultar banco de dados")
     void shouldGenerateAndValidateStatelessJwt() {
         JwtService jwtService = new JwtService(TEST_SECRET, 3600000L, "ACCESS_TOKEN", false);
-        UserEntity user = new UserEntity("Alex Candidato", "alex@ecommerce.com", "hash", "ROLE_CUSTOMER", "PRIME_BLACK");
+        UserEntity user = new UserEntity("Alexsandro Clemente", "alex@ecommerce.com", "hash", "ROLE_CUSTOMER", "PRIME_BLACK");
         user.setId(42L);
 
         String token = jwtService.generateToken(user);
@@ -37,7 +37,7 @@ class JwtAndDenyListUnitTest {
     }
 
     @Test
-    @DisplayName("ADR-005: Deve revogar token na Deny List imediatamente durante o logout forçado")
+    @DisplayName("Deve revogar token na Deny List imediatamente durante o logout forçado")
     void shouldRevokeTokenInDenyList() {
         TokenDenyListService denyList = new TokenDenyListService();
         String jti = "jti-12345-revoked";

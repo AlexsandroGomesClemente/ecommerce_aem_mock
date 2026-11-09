@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.UUID;
 
 /**
- * ADR-005: Serviço de emissão e validação criptográfica Stateless de JWT (OAuth 2.0 / Bearer / HttpOnly Cookie).
+ * Serviço de emissão e validação criptográfica Stateless de JWT (OAuth 2.0 / Bearer / HttpOnly Cookie).
  * Todas as claims essenciais são assinadas no token para evitar consultas ao PostgreSQL a cada requisição.
  */
 @Service

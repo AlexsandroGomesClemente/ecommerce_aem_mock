@@ -1,5 +1,5 @@
 /**
- * ADR-006: Testes de Carga e Stress Contínuos na Esteira (CI/CD) com Grafana k6
+ * Testes de Carga e Stress Contínuos na Esteira (CI/CD) com Grafana k6
  *
  * Simula dois cenários obrigatórios exigidos nos requisitos:
  *   1) stage_500_users:  500 usuários simultâneos (VUs)
@@ -9,7 +9,7 @@
  *   - Acessa o Experience Fragment / Home do AEM + Catálogo via GraphQL (/graphql)
  *   - Consulta disponibilidade e produto específico via API REST (/api/v1/products/SKU-PRO-ULTRA-16)
  *
- * Critério de aprovação (SLO da ADR-006):
+ * Critério de aprovação (SLO de Produção):
  *   - 95% das requisições devem responder em menos de 200ms: `http_req_duration: ['p(95)<200']`
  *   - Taxa de falha inferior a 1%: `http_req_failed: ['rate<0.01']`
  *

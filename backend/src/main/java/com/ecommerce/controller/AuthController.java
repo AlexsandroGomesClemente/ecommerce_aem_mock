@@ -25,7 +25,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 /**
- * ADR-005: Autenticação Stateless OAuth 2.0 + JWT entregue exclusivamente via Cookies HttpOnly e Secure.
+ * Autenticação Stateless OAuth 2.0 + JWT entregue exclusivamente via Cookies HttpOnly e Secure.
  * O token não é exposto ao localStorage do navegador, blindando a aplicação contra roubo de sessão via XSS.
  */
 @RestController
@@ -96,7 +96,7 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new AuthStatusResponse(
                         true,
-                        "Autenticado via OAuth 2.0 + JWT em Cookie HttpOnly (ADR-005)",
+                        "Autenticado via OAuth 2.0 + JWT em Cookie HttpOnly",
                         "HttpOnly; SameSite=Lax; Max-Age=" + jwtService.getExpirationSeconds(),
                         profile
                 ));
@@ -110,7 +110,7 @@ public class AuthController {
                 String jti = jwtService.extractJti(extraction.token());
                 Instant exp = jwtService.extractExpiration(extraction.token());
                 tokenDenyListService.revokeToken(jti, exp);
-                telemetryService.appendLog("SECURITY", "TokenDenyList[ADR-005]", "Token JTI=" + jti + " adicionado à Deny List até expiração", 2);
+                telemetryService.appendLog("SECURITY", "TokenDenyList", "Token JTI=" + jti + " adicionado à Deny List até expiração", 2);
             } catch (Exception ignored) {
             }
         }
@@ -129,7 +129,7 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, clearCookie.toString())
                 .body(new AuthStatusResponse(
                         false,
-                        "Logout concluído: Cookie HttpOnly removido e JWT incluído na Deny List (ADR-005).",
+                        "Logout concluído: Cookie HttpOnly removido e JWT incluído na Deny List.",
                         "HttpOnly; Max-Age=0 (Revoked)",
                         null
                 ));
@@ -149,7 +149,7 @@ public class AuthController {
             );
             return ResponseEntity.ok(new AuthStatusResponse(
                     true,
-                    "Sessão Stateless validada criptograficamente sem consulta ao PostgreSQL (ADR-005).",
+                    "Sessão Stateless validada criptograficamente sem consulta ao PostgreSQL.",
                     "HttpOnly; SameSite=Lax",
                     profile
             ));

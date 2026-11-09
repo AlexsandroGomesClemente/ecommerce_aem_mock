@@ -26,6 +26,7 @@ function formatBrl(value: number): string {
         :alt="product.name"
         class="product-card__image"
         loading="lazy"
+        @error="(e) => ((e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80')"
       />
       <span class="product-card__badge">
         {{ product.editorialContent?.badge || 'Destaque' }}

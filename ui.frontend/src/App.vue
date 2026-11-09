@@ -38,17 +38,46 @@ const paymentOptions = [
   }
 ];
 
-const categories = ['TODOS', 'Notebooks', 'Smartphones', 'Audio', 'Monitores', 'Wearables', 'Perifericos'];
+const categories = [
+  { id: 'TODOS', label: 'Todos' },
+  { id: 'Notebooks', label: 'Notebooks' },
+  { id: 'Smartphones', label: 'Smartphones' },
+  { id: 'Audio', label: 'Áudio' },
+  { id: 'Monitores', label: 'Monitores' },
+  { id: 'Wearables', label: 'Wearables' },
+  { id: 'Perifericos', label: 'Periféricos' }
+];
 
 onMounted(async () => {
   await store.restoreSession();
   await store.loadStorefront();
 });
 
-async function handleCategoryChange(cat: string) {
-  store.selectedCategory = cat;
+async function handleCategoryChange(catId: string) {
+  store.selectedCategory = catId;
   await store.loadStorefront();
-  store.addToast('info', 'Filtro Aplicado', `Categoria alterada para: ${cat}`);
+  const catLabel = categories.find((c) => c.id === catId)?.label || catId;
+  store.addToast('info', 'Filtro Aplicado', `Categoria selecionada: ${catLabel}`);
+}
+
+async function handleSearch() {
+  await store.loadStorefront();
+  if (store.searchQuery.trim()) {
+    store.addToast('info', 'Busca Realizada', `Filtrando por "${store.searchQuery}"`);
+  }
+}
+
+async function clearSearch() {
+  store.searchQuery = '';
+  await store.loadStorefront();
+  store.addToast('info', 'Busca Limpa', 'Filtro de busca por texto removido.');
+}
+
+async function resetFilters() {
+  store.selectedCategory = 'TODOS';
+  store.searchQuery = '';
+  await store.loadStorefront();
+  store.addToast('info', 'Filtros Resetados', 'Exibindo todos os produtos do catálogo.');
 }
 
 async function handleProtocolToggle(protocol: 'GRAPHQL' | 'REST_API') {
@@ -70,7 +99,10 @@ async function handleCheckout() {
     store.addToast('info', 'Login Necessário', 'Acesse sua conta para concluir a compra.');
     return;
   }
-  await store.checkout(paymentMethod.value);
+  const order = await store.checkout(paymentMethod.value);
+  if (order) {
+    showCartDrawer.value = false;
+  }
 }
 
 function selectPaymentMethod(id: string) {
@@ -207,13 +239,14 @@ function scrollToCatalog() {
         <div class="category-tabs">
           <button
             v-for="cat in categories"
-            :key="cat"
+            :key="cat.id"
             type="button"
             class="category-tab"
-            :class="{ active: store.selectedCategory === cat }"
-            @click="handleCategoryChange(cat)"
+            :class="{ active: store.selectedCategory === cat.id }"
+            :data-testid="`filter-tab-${cat.id}`"
+            @click="handleCategoryChange(cat.id)"
           >
-            {{ cat }}
+            {{ cat.label }}
           </button>
         </div>
 
@@ -221,24 +254,88 @@ function scrollToCatalog() {
           <input
             v-model="store.searchQuery"
             type="search"
-            placeholder="Buscar produto por nome ou categoria..."
+            placeholder="Buscar por nome, SKU ou categoria..."
             data-testid="catalog-search-input"
-            @keyup.enter="store.loadStorefront()"
+            @keyup.enter="handleSearch"
+            @search="handleSearch"
           />
-          <button type="button" class="btn-secondary" @click="store.loadStorefront()">
+          <button type="button" class="btn-secondary" data-testid="catalog-search-btn" @click="handleSearch">
             Buscar
           </button>
         </div>
       </section>
 
-      <!-- Grid de Produtos com Fotos -->
+      <!-- Barra de Filtros Ativos -->
+      <div
+        v-if="store.selectedCategory !== 'TODOS' || store.searchQuery.trim()"
+        class="active-filters-bar"
+        data-testid="active-filters-bar"
+      >
+        <span class="active-filters-label">Filtros ativos:</span>
+        <span
+          v-if="store.selectedCategory !== 'TODOS'"
+          class="active-filter-chip"
+          data-testid="chip-category"
+        >
+          Categoria: {{ categories.find((c) => c.id === store.selectedCategory)?.label || store.selectedCategory }}
+          <button type="button" class="chip-remove" title="Remover filtro de categoria" @click="handleCategoryChange('TODOS')">✕</button>
+        </span>
+        <span
+          v-if="store.searchQuery.trim()"
+          class="active-filter-chip"
+          data-testid="chip-search"
+        >
+          Busca: "{{ store.searchQuery }}"
+          <button type="button" class="chip-remove" title="Limpar busca" @click="clearSearch">✕</button>
+        </span>
+        <button type="button" class="btn-clear-all" data-testid="btn-reset-filters" @click="resetFilters">
+          Limpar filtros
+        </button>
+      </div>
+
+      <!-- Grid de Produtos com Fotos / Skeletons -->
       <section class="products-grid" data-testid="products-grid">
-        <ProductCatalogCard
-          v-for="product in store.products"
-          :key="product.sku"
-          :product="product"
-          @add-to-cart="store.addToCart"
-        />
+        <!-- Skeleton Loading Cards -->
+        <template v-if="store.loading">
+          <div
+            v-for="n in 6"
+            :key="`skeleton-${n}`"
+            class="product-card product-card--skeleton"
+            data-testid="product-skeleton"
+          >
+            <div class="skeleton-image skeleton-shimmer"></div>
+            <div class="skeleton-body">
+              <div class="skeleton-pill skeleton-shimmer"></div>
+              <div class="skeleton-line skeleton-title skeleton-shimmer"></div>
+              <div class="skeleton-line skeleton-text skeleton-shimmer"></div>
+              <div class="skeleton-line skeleton-text skeleton-text--short skeleton-shimmer"></div>
+              <div class="skeleton-footer">
+                <div class="skeleton-line skeleton-price skeleton-shimmer"></div>
+                <div class="skeleton-button skeleton-shimmer"></div>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Produtos Reais -->
+        <template v-else-if="store.products.length > 0">
+          <ProductCatalogCard
+            v-for="product in store.products"
+            :key="product.sku"
+            :product="product"
+            @add-to-cart="store.addToCart"
+          />
+        </template>
+
+        <!-- Estado Vazio (Sem resultados nos filtros) -->
+        <div v-else class="catalog-empty-state" data-testid="catalog-empty-state">
+          <span class="empty-icon">🔍</span>
+          <h3>Nenhum produto encontrado</h3>
+          <p>Não encontramos produtos com os critérios selecionados.</p>
+          <button type="button" class="btn-primary" @click="resetFilters">
+            Limpar Filtros e Ver Catálogo Completo
+          </button>
+        </div>
       </section>
 
       <!-- Histórico de Pedidos -->
@@ -305,91 +402,103 @@ function scrollToCatalog() {
       </div>
     </div>
 
-    <!-- Drawer do Carrinho -->
-    <aside v-if="showCartDrawer" class="cart-drawer" data-testid="cart-drawer">
-      <div class="cart-drawer__header">
-        <h3>Seu Carrinho ({{ store.cartCount }} {{ store.cartCount === 1 ? 'item' : 'itens' }})</h3>
-        <button type="button" class="close-btn" @click="showCartDrawer = false">✕</button>
-      </div>
+    <!-- Backdrop do Carrinho com Fade Suave -->
+    <Transition name="drawer-backdrop">
+      <div
+        v-if="showCartDrawer"
+        class="cart-backdrop"
+        data-testid="cart-backdrop"
+        @click="showCartDrawer = false"
+      ></div>
+    </Transition>
 
-      <div v-if="store.cart.length === 0" class="cart-empty">
-        Seu carrinho está vazio no momento. Adicione itens para finalizar a compra.
-      </div>
-
-      <div v-else class="cart-items">
-        <div v-for="item in store.cart" :key="item.product.sku" class="cart-item">
-          <div class="cart-item__info">
-            <strong>{{ item.product.name }}</strong>
-            <div class="cart-item__meta">
-              {{ formatBrl(item.product.price) }}
-            </div>
-          </div>
-          <div class="cart-item__qty">
-            <button
-              type="button"
-              @click="store.updateCartQuantity(item.product.sku, item.quantity - 1)"
-            >
-              -
-            </button>
-            <span>{{ item.quantity }}</span>
-            <button
-              type="button"
-              @click="store.updateCartQuantity(item.product.sku, item.quantity + 1)"
-            >
-              +
-            </button>
-          </div>
+    <!-- Drawer do Carrinho com Slide Suave -->
+    <Transition name="drawer-slide">
+      <aside v-if="showCartDrawer" class="cart-drawer" data-testid="cart-drawer">
+        <div class="cart-drawer__header">
+          <h3>Seu Carrinho ({{ store.cartCount }} {{ store.cartCount === 1 ? 'item' : 'itens' }})</h3>
+          <button type="button" class="close-btn" @click="showCartDrawer = false">✕</button>
         </div>
 
-        <div class="cart-summary">
-          <!-- Mini cards de formas de pagamento intuitivos -->
-          <div class="payment-methods-section">
-            <span class="payment-section-title">Forma de Pagamento</span>
-            <div class="payment-cards-grid" role="radiogroup" aria-label="Forma de Pagamento">
-              <div
-                v-for="opt in paymentOptions"
-                :key="opt.id"
-                class="payment-option-card"
-                :class="{ active: paymentMethod === opt.id }"
-                :data-testid="`payment-option-${opt.id}`"
-                tabindex="0"
-                role="radio"
-                :aria-checked="paymentMethod === opt.id"
-                @click="selectPaymentMethod(opt.id)"
-                @keydown.enter="selectPaymentMethod(opt.id)"
-                @keydown.space.prevent="selectPaymentMethod(opt.id)"
+        <div v-if="store.cart.length === 0" class="cart-empty">
+          Seu carrinho está vazio no momento. Adicione itens para finalizar a compra.
+        </div>
+
+        <div v-else class="cart-items">
+          <div v-for="item in store.cart" :key="item.product.sku" class="cart-item">
+            <div class="cart-item__info">
+              <strong>{{ item.product.name }}</strong>
+              <div class="cart-item__meta">
+                {{ formatBrl(item.product.price) }}
+              </div>
+            </div>
+            <div class="cart-item__qty">
+              <button
+                type="button"
+                @click="store.updateCartQuantity(item.product.sku, item.quantity - 1)"
               >
-                <div class="payment-card-left">
-                  <span class="payment-card-icon">{{ opt.icon }}</span>
-                  <div class="payment-card-text">
-                    <span class="payment-card-name">{{ opt.title }}</span>
-                    <span class="payment-card-sub">{{ opt.subtitle }}</span>
+                -
+              </button>
+              <span>{{ item.quantity }}</span>
+              <button
+                type="button"
+                @click="store.updateCartQuantity(item.product.sku, item.quantity + 1)"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <div class="cart-summary">
+            <!-- Mini cards de formas de pagamento intuitivos -->
+            <div class="payment-methods-section">
+              <span class="payment-section-title">Forma de Pagamento</span>
+              <div class="payment-cards-grid" role="radiogroup" aria-label="Forma de Pagamento">
+                <div
+                  v-for="opt in paymentOptions"
+                  :key="opt.id"
+                  class="payment-option-card"
+                  :class="{ active: paymentMethod === opt.id }"
+                  :data-testid="`payment-option-${opt.id}`"
+                  tabindex="0"
+                  role="radio"
+                  :aria-checked="paymentMethod === opt.id"
+                  @click="selectPaymentMethod(opt.id)"
+                  @keydown.enter="selectPaymentMethod(opt.id)"
+                  @keydown.space.prevent="selectPaymentMethod(opt.id)"
+                >
+                  <div class="payment-card-left">
+                    <span class="payment-card-icon">{{ opt.icon }}</span>
+                    <div class="payment-card-text">
+                      <span class="payment-card-name">{{ opt.title }}</span>
+                      <span class="payment-card-sub">{{ opt.subtitle }}</span>
+                    </div>
                   </div>
-                </div>
-                <div class="payment-card-right">
-                  <span v-if="opt.badge" class="payment-badge">{{ opt.badge }}</span>
-                  <span class="payment-radio-indicator">
-                    <span v-if="paymentMethod === opt.id" class="radio-inner-dot"></span>
-                  </span>
+                  <div class="payment-card-right">
+                    <span v-if="opt.badge" class="payment-badge">{{ opt.badge }}</span>
+                    <span class="payment-radio-indicator">
+                      <span v-if="paymentMethod === opt.id" class="radio-inner-dot"></span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="cart-total-row">
-            <span>Total do Pedido:</span>
-            <strong data-testid="cart-total-value">{{ formatBrl(store.cartTotal) }}</strong>
+            <div class="cart-total-row">
+              <span>Total do Pedido:</span>
+              <strong data-testid="cart-total-value">{{ formatBrl(store.cartTotal) }}</strong>
+            </div>
+            <button
+              type="button"
+              class="btn-primary btn-full"
+              data-testid="checkout-submit-btn"
+              @click="handleCheckout"
+            >
+              Finalizar Compra
+            </button>
           </div>
-          <button
-            type="button"
-            class="btn-primary btn-full"
-            data-testid="checkout-submit-btn"
-            @click="handleCheckout"
-          >
-            Finalizar Compra
-          </button>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </Transition>
   </div>
 </template>

@@ -66,7 +66,7 @@ public class RestEcommerceController {
         return ResponseEntity.ok(Map.of(
                 "clientLibCategory", "ecommerce.site",
                 "jcrRootPath", "/apps/ecommerce/clientlibs/clientlib-site",
-                "bundler", "Vite 5 -> AEM ClientLib XML Generator (ADR-004)",
+                "bundler", "Vite 5 -> AEM ClientLib XML Generator",
                 "dependencies", List.of("aem.core.wcm.components.all"),
                 "status", "ACTIVE"
         ));

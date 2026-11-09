@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * ADR-002 e ADR-003: Conector de Conteúdo Editorial do Adobe Experience Manager (AEM JCR).
+ * Conector de Conteúdo Editorial do Adobe Experience Manager (AEM JCR).
  * Separa claramente o que é "Conteúdo Editorial" (gerenciado no JCR do AEM: banners, textos ricos,
  * imagens, badges, SEO) do que é "Dado Transacional" (gerenciado no PostgreSQL: preço, estoque, pedidos).
  *
@@ -56,7 +56,7 @@ public class AemContentService {
     }
 
     /**
-     * ADR-003: Busca em Lote (Batch) utilizada pelo @BatchMapping (DataLoader) do GraphQL.
+     * Busca em Lote (Batch) utilizada pelo @BatchMapping (DataLoader) do GraphQL.
      * Em vez de fazer N chamadas separadas ao AEM para cada produto listado, resolve todos os paths
      * em uma única operação agregada.
      */
@@ -94,7 +94,7 @@ public class AemContentService {
                         List.of("Titânio Aeroespacial", "Câmera Tripla 48MP Pro", "Tela Super AMOLED 120Hz"),
                         "linear-gradient(135deg, #dcede1 0%, #ffffff 100%)",
                         "smartphone",
-                        "https://images.unsplash.com/photo-1511707171634-5f897ff02560?auto=format&fit=crop&w=600&q=80",
+                        "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&w=600&q=80",
                         "smartphone 5g, celular pro, fotografia, titanio"
                 )
         );
